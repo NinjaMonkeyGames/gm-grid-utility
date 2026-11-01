@@ -278,7 +278,7 @@ jobs:
       # (see .config/gm-fail.sh) - so a nonzero exit here must not fail
       # this step before that scan gets a chance to run.
       - name: Run tests under Xvfb
-        working-directory: ./gm-grid-utility
+        working-directory: ./project_files
         env:
           DISPLAY: :99
         run: |
@@ -334,5 +334,5 @@ jobs:
       - run: npm install
 
       - name: Compile project (linux)
-        working-directory: ./gm-grid-utility
+        working-directory: ./project_files
         run: npx @gamemaker/gm-cli@latest compile --target linux --verbose
