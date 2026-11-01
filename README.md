@@ -1,16 +1,16 @@
-# GRID UTILITY PROFESSIONAL
+# GAMEMAKER GRID UTILITY
 
 <!-- markdownlint-disable MD013 -->
 [![Common Changelog](https://common-changelog.org/badge.svg)](https://common-changelog.org)
 ![Signed Commits](https://img.shields.io/badge/commits-signed-blue.svg)
 ![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg)
-![GitHub Release](https://img.shields.io/github/v/release/NinjaMonkeyGames/grid-utility-professional)
+![GitHub Release](https://img.shields.io/github/v/release/NinjaMonkeyGames/gm-grid-utility)
 <!-- markdownlint-enable MD013 -->
 ---
 
 ## TABLE OF CONTENTS
 
-- [GRID UTILITY PROFESSIONAL](#grid-utility-professional)
+- [GAMEMAKER GRID UTILITY](#gamemaker-grid-utility)
   - [TABLE OF CONTENTS](#table-of-contents)
   - [SUMMERY DESCRIPTION](#summery-description)
   - [WHAT IS THE PURPOSE OF THIS PROJECT ?](#what-is-the-purpose-of-this-project-)
@@ -198,7 +198,7 @@ If you have any problems with the repository or have any suggestions please cont
 
 You may also contact us via our [website](https://NinjaMonkeyGames.com).
 
-Any bugs should be raised as an [issue](https://github.com/NinjaMonkeyGames/grid-utility-professional/issues) on
+Any bugs should be raised as an [issue](https://github.com/NinjaMonkeyGames/gm-grid-utility/issues) on
 GitHub.
 
 ---

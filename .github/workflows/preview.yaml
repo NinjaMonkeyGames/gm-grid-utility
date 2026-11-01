@@ -278,7 +278,7 @@ jobs:
       # (see .config/gm-fail.sh) - so a nonzero exit here must not fail
       # this step before that scan gets a chance to run.
       - name: Run tests under Xvfb
-        working-directory: ./grid-utility-professional
+        working-directory: ./gm-grid-utility
         env:
           DISPLAY: :99
         run: |
@@ -289,7 +289,7 @@ jobs:
       - name: Evaluate results
         run: |
           chmod +x ./.config/gm-fail.sh
-          ./.config/gm-fail.sh ./grid-utility-professional/test_output.log
+          ./.config/gm-fail.sh ./gm-grid-utility/test_output.log
 
   # A compile *sanity check* - `needs: gm-cli-tests` specifically (not the
   # lint jobs directly), since a project whose own unit tests fail has no
@@ -334,5 +334,5 @@ jobs:
       - run: npm install
 
       - name: Compile project (linux)
-        working-directory: ./grid-utility-professional
+        working-directory: ./gm-grid-utility
         run: npx @gamemaker/gm-cli@latest compile --target linux --verbose
