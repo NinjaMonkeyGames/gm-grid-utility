@@ -1,4 +1,7 @@
 {
   "FolderOrderSettings":[],
-  "ResourceOrderSettings":[],
+  "ResourceOrderSettings":[
+    {"name":"obj_grid_controller","order":2,"path":"objects/obj_grid_controller/obj_grid_controller.yy",},
+    {"name":"obj_unit_test","order":1,"path":"objects/obj_unit_test/obj_unit_test.yy",},
+  ],
 }

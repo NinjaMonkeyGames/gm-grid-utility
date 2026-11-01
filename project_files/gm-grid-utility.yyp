@@ -19,6 +19,8 @@
   },
   "name":"gm-grid-utility",
   "resources":[
+    {"id":{"name":"obj_grid_controller","path":"objects/obj_grid_controller/obj_grid_controller.yy",},},
+    {"id":{"name":"obj_unit_test","path":"objects/obj_unit_test/obj_unit_test.yy",},},
     {"id":{"name":"rm_main","path":"rooms/rm_main/rm_main.yy",},},
   ],
   "resourceType":"GMProject",
