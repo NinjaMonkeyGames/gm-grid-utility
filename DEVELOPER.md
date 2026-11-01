@@ -2,6 +2,7 @@
 
 - [DEVELOPER](#developer)
   - [Developer Documentation](#developer-documentation)
+  - [INITIALISATION CODE](#initialisation-code)
   - [CONTACT INFORMATION](#contact-information)
   - [COPYRIGHT](#copyright)
 
@@ -13,6 +14,8 @@ codebase organisation.
 
 *Note: Please refer to the **[CONTRIBUTING.md](CONTRIBUTING.md)** for information regarding coding style, pull request
 processes, and commit message conventions.*
+
+## INITIALISATION CODE
 
 ## CONTACT INFORMATION
 
