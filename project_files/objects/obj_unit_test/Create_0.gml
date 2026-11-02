@@ -79,7 +79,7 @@ function test_expect_no_throw(_callback, _label)
 
 function test_make_tile_data(_rows, _columns)
 {
-	var _data = [];
+	//var _data = [];
 
 	repeat (_rows)
 	{
