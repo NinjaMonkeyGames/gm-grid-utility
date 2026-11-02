@@ -1170,6 +1170,6 @@ show_debug_message("UNIT TESTS COMPLETE: " + string(global.test_pass) + " passed
 show_debug_message("==============================================");
 
 // If execution reaches this point, all unit tests passed successfully
-game_end(1);
+
 if global.test_fail > 0 then game_end(1);
 game_end(0);

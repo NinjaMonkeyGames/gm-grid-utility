@@ -830,6 +830,8 @@ constructor
 			if keyboard_check_pressed(vk_up)	then shift_y(-1);
 			if keyboard_check_pressed(vk_down)	then shift_y(1);
 		}
+		
+		set_coords();
 	}
 	
 	/**
