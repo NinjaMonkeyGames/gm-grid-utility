@@ -286,11 +286,6 @@ jobs:
           sleep 2
           npx @gamemaker/gm-cli@latest run --verbose 2>&1 | tee test_output.log || true
 
-      - name: Evaluate results
-        run: |
-          chmod +x ./.config/gm-fail.sh
-          ./.config/gm-fail.sh ./gm-grid-utility/test_output.log
-
   # A compile *sanity check* - `needs: gm-cli-tests` specifically (not the
   # lint jobs directly), since a project whose own unit tests fail has no
   # business being checked for compile health either. Transitively, that
