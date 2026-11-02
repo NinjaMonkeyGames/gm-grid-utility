@@ -9,9 +9,6 @@ if [ -z "$LOG_FILE" ] || [ ! -f "$LOG_FILE" ]; then
   exit 1
 fi
 
-# Use the LAST summary line, in case the log contains more than one run.
-# grep -a (treat as text): the captured output can contain NUL / non-UTF8 bytes, which makes plain
-# grep print "binary file matches" instead of the matching line.
 SUMMARY=$(grep -a "UNIT TESTS COMPLETE:" "$LOG_FILE" | tail -n 1 | tr -d '\r')
 
 if [ -z "$SUMMARY" ]; then
