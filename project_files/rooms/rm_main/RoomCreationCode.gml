@@ -32,4 +32,4 @@ example_grid = new obj_grid_controller.grid(,,,,,,,,,,,_tile_data);	// Generate 
 
 // Generate unit test object.
 
-if global.debug_enabled != true then global.unit_test = instance_create_layer(0, 0, "lyr_gui", obj_unit_test);
+if global.debug_enabled == true then global.unit_test = instance_create_layer(0, 0, "lyr_gui", obj_unit_test);
