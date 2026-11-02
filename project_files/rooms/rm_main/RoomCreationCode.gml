@@ -20,7 +20,7 @@ repeat (30) // Rows.
 		{
 			sprite	: spr_jungle_temple,
 			index	: irandom(_frames - 1),	// irandom() is inclusive, so subtract 1. (round(random(30)) could return 30.)
-			angle	: 0,					// Degrees, 0-359. draw() now applies this, so 0 = unrotated.
+			angle	: 180,					// Degrees, 0-359. draw() now applies this, so 0 = unrotated.
 			alpha	: 1
 		});
 	}

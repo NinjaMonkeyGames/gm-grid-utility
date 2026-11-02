@@ -106,13 +106,13 @@ constructor
 	grid_y2 = 0;
 
 	/**
-	 * @function is_finite_real()
-	 * @description True only for real numbers that are neither NaN nor +/- infinity.
-	 * is_real(NaN) is true and every NaN comparison is false, so range checks alone never reject it.
-	 * @since v0.1.1.
-	 * @param {Any} _value Value to test.
-	 * @returns {Bool}
-	 * @pure
+ 	* @function is_finite_real()
+ 	* @description True only for real numbers that are neither NaN nor +/- infinity.
+ 	* is_real(NaN) is true and every NaN comparison is false, so range checks alone never reject it.
+ 	* @since v0.1.1.
+ 	* @param {Any} _value Value to test.
+ 	* @returns {Bool}
+ 	* @pure
 	 */
 
 	static is_finite_real = function(_value)
@@ -122,13 +122,13 @@ constructor
 	};
 
 	/**
-	 * @function validate_tile()
-	 * @description Validates a single tile entry. Checks it is a struct with every required field BEFORE
-	 * any field is read, and that the sprite is a real/handle BEFORE it reaches spt_get_asset_type_as_string.
-	 * @since v0.1.1.
-	 * @param {Any}  _tile   The tile entry.
-	 * @param {Real} _row    Row index (for error messages).
-	 * @param {Real} _column Column index (for error messages).
+ 	* @function validate_tile()
+ 	* @description Validates a single tile entry. Checks it is a struct with every required field BEFORE
+ 	* any field is read, and that the sprite is a real/handle BEFORE it reaches spt_get_asset_type_as_string.
+ 	* @since v0.1.1.
+ 	* @param {Any}  _tile   The tile entry.
+ 	* @param {Real} _row    Row index (for error messages).
+ 	* @param {Real} _column Column index (for error messages).
 	 */
 
 	static validate_tile = function(_tile, _row, _column)
@@ -156,18 +156,18 @@ constructor
 		// Guard BEFORE calling the external helper, so a string/struct/undefined can't crash inside it.
 		// (is_handle covers runtimes where asset references are a distinct "ref" type.)
 
-		if !(is_real(_sprite) || is_handle(_sprite))		then throw "BAD SPRITE (NOT AN ASSET)" + _at;
-		if !sprite_exists(_sprite)							then throw "BAD SPRITE (DOES NOT EXIST)" + _at;
-		if spt_get_asset_type_as_string(_sprite) != "sprite" then throw "BAD SPRITE" + _at;
+		if !(is_real(_sprite) || is_handle(_sprite))			then throw "BAD SPRITE (NOT AN ASSET)" + _at;
+		if !sprite_exists(_sprite)								then throw "BAD SPRITE (DOES NOT EXIST)" + _at;
+		if spt_get_asset_type_as_string(_sprite) != "sprite"	then throw "BAD SPRITE" + _at;
 
-		if !is_finite_real(_index)							then throw "BAD_INDEX" + _at;
-		if !is_finite_real(_angle)							then throw "BAD_ANGLE" + _at;
-		if !is_finite_real(_alpha)							then throw "BAD_ALPHA" + _at;
+		if !is_finite_real(_index)								then throw "BAD_INDEX" + _at;
+		if !is_finite_real(_angle)								then throw "BAD_ANGLE" + _at;
+		if !is_finite_real(_alpha)								then throw "BAD_ALPHA" + _at;
 
 		// Whole number checks.
 
-		if frac(_index) != 0								then throw "TILE INDEX MUST BE A WHOLE NUMBER" + _at;
-		if frac(_angle) != 0								then throw "TILE ANGLE MUST BE A WHOLE NUMBER" + _at;
+		if frac(_index) != 0									then throw "TILE INDEX MUST BE A WHOLE NUMBER" + _at;
+		if frac(_angle) != 0									then throw "TILE ANGLE MUST BE A WHOLE NUMBER" + _at;
 
 		// Range checks. Index is zero-based, so it must be strictly LESS than the subimage count.
 
@@ -179,21 +179,21 @@ constructor
 	};
 
 	/**
-	 * @function validate_input()
-	 * @description Validates arguments and throws on the first invalid one.
-	 * @since v0.1.0.
-	 * @param {Real}	[_x_offset]					Horizontal starting position (origin, top-left) of the grid.
-	 * @param {Real}	[_y_offset]					Vertical starting position (origin, top-left) of the grid.
-	 * @param {Real}	[_cell_width]				Width of an individual grid cell in pixels or units.
-	 * @param {Real}	[_cell_height]				Height of an individual grid cell in pixels or units.
-	 * @param {Real}	[_row_qty]					Number of rows.
-	 * @param {Real}	[_column_qty]				Number of columns.
-	 * @param {Bool}	[_label_text_type_row]		If row labels are rendered as letters (true) or numbers (false).
-	 * @param {Bool}	[_label_text_type_column]	If column labels are rendered as letters (true) or numbers (false).
-	 * @param {Real}	[_grid_colour]				Colour of the grid lines.
-	 * @param {Real}	[_text_colour]				Default label text colour.
-	 * @param {real}	[_text_colour_selected]		Label text colour when the row/column is under the cursor.
-	 * @param {Array}	[_tile_data]				A 2D array of structs, indexed [row][column]. (sprite, index, angle, alpha).
+ 	* @function validate_input()
+ 	* @description Validates arguments and throws on the first invalid one.
+ 	* @since v0.1.0.
+ 	* @param {Real} [_x_offset] Horizontal starting position (origin, top-left) of the grid.
+ 	* @param {Real} [_y_offset] Vertical starting position (origin, top-left) of the grid.
+ 	* @param {Real} [_cell_width] Width of an individual grid cell in pixels or units.
+ 	* @param {Real} [_cell_height] Height of an individual grid cell in pixels or units.
+ 	* @param {Real} [_row_qty] Number of rows.
+ 	* @param {Real} [_column_qty] Number of columns.
+ 	* @param {Bool} [_label_text_type_row] If row labels are rendered as letters (true) or numbers (false).
+ 	* @param {Bool} [_label_text_type_column] If column labels are rendered as letters (true) or numbers (false).
+ 	* @param {Real} [_grid_colour] Colour of the grid lines.
+ 	* @param {Real} [_text_colour] Default label text colour.
+ 	* @param {real} [_text_colour_selected] Label text colour when the row/column is under the cursor.
+ 	* @param {Array} [_tile_data] A 2D array of structs, indexed [row][column]. (sprite, index, angle, alpha).
 	 */
 
 	static validate_input = function
@@ -270,13 +270,6 @@ constructor
 
 			if _row_qty > _tile_data_row_qty			then throw"BAD_GRID_SIZE, GRID MUST NOT HAVE MORE ROWS THAN TILE DATA ARRAY";
 		
-			/*
-			// EVERY row and EVERY tile is validated, not just the top-left grid-sized region.
-			// shift_x/shift_y/zoom(false) all let draw() read tiles outside the initial
-			// row_qty x column_qty area, so anything unvalidated there would crash at draw time.
-			// Column count is read per row since rows are not guaranteed to be the same length.
-			*/
-
 			for (var _row = 0; _row < _tile_data_row_qty; ++_row) 
 			{
 				if !is_array(_tile_data[_row]) then throw string("BAD_TILE_DATA_ROW @ row " + string(_row) + " (not an array)");
@@ -333,10 +326,10 @@ constructor
 	};
 
 	/**
-	 * @function guard_alive()
-	 * @description Throws if this instance has already been destroyed. Single source of truth for the
-	 * use-after-destroy check - call at the top of any method that reads cell_data/vbuff or mutates grid state.
-	 * @since v0.1.0.
+ 	* @function guard_alive()
+ 	* @description Throws if this instance has already been destroyed. Single source of truth for the
+ 	* use-after-destroy check - call at the top of any method that reads cell_data/vbuff or mutates grid state.
+ 	* @since v0.1.0.
 	 */
 
 	static guard_alive = function()
@@ -345,24 +338,24 @@ constructor
 	};
 
 	/**
-	 * @function clamp_shifts()
-	 * @description Single place that re-clamps x_shift/y_shift against the current column_qty/row_qty.
-	 * max() guards against the quantity exceeding (1 + LIMIT_*_SHIFT_MAX), which would otherwise
-	 * invert clamp()'s min/max and leave the shift negative (negative labels / negative array indices).
-	 * @since v0.1.1.
+ 	* @function clamp_shifts()
+ 	* @description Single place that re-clamps x_shift/y_shift against the current column_qty/row_qty.
+ 	* max() guards against the quantity exceeding (1 + LIMIT_*_SHIFT_MAX), which would otherwise
+ 	* invert clamp()'s min/max and leave the shift negative (negative labels / negative array indices).
+ 	* @since v0.1.1.
 	 */
 
 	static clamp_shifts = function()
 	{
 		x_shift = clamp(x_shift, LIMIT_COLUMN_SHIFT_MIN, max(LIMIT_COLUMN_SHIFT_MIN, 1 + LIMIT_COLUMN_SHIFT_MAX - column_qty));
-		y_shift = clamp(y_shift, LIMIT_ROW_SHIFT_MIN,	 max(LIMIT_ROW_SHIFT_MIN,	 1 + LIMIT_ROW_SHIFT_MAX	- row_qty));
+		y_shift = clamp(y_shift, LIMIT_ROW_SHIFT_MIN,	 max(LIMIT_ROW_SHIFT_MIN,	 1 + LIMIT_ROW_SHIFT_MAX - row_qty));
 	};
 
 	/**
-	 * @function snapshot_state()
-	 * @description Captures the mutable layout state so a failed rebuild can be rolled back.
-	 * @since v0.1.1.
-	 * @returns {Struct}
+ 	* @function snapshot_state()
+ 	* @description Captures the mutable layout state so a failed rebuild can be rolled back.
+ 	* @since v0.1.1.
+ 	* @returns {Struct}
 	 */
 
 	static snapshot_state = function()
@@ -379,12 +372,12 @@ constructor
 	};
 
 	/**
-	 * @function commit_state()
-	 * @description Re-clamps the shifts and rebuilds the grid. If the rebuild throws, the previous
-	 * state is restored (set_grid() is itself atomic, so the old buffer/cell_data are still valid)
-	 * and the error is rethrown. The grid is therefore never left half-updated.
-	 * @since v0.1.1.
-	 * @param {Struct} _snapshot Result of snapshot_state() taken before the mutation.
+ 	* @function commit_state()
+ 	* @description Re-clamps the shifts and rebuilds the grid. If the rebuild throws, the previous
+ 	* state is restored (set_grid() is itself atomic, so the old buffer/cell_data are still valid)
+ 	* and the error is rethrown. The grid is therefore never left half-updated.
+ 	* @since v0.1.1.
+ 	* @param {Struct} _snapshot Result of snapshot_state() taken before the mutation.
 	 */
 
 	static commit_state = function(_snapshot)
@@ -408,11 +401,11 @@ constructor
 	};
     
 	/**
-	 * @function set_grid()
-	 * @description Rebuilds the grid's vertex buffer and cell data from the current parameters.
-	 * ATOMIC: everything that can throw (labels) is computed BEFORE any buffer is opened, and the new
-	 * buffer/cell_data/bounds are only swapped in once everything succeeded.
-	 * @since v0.1.0.
+ 	* @function set_grid()
+ 	* @description Rebuilds the grid's vertex buffer and cell data from the current parameters.
+ 	* ATOMIC: everything that can throw (labels) is computed BEFORE any buffer is opened, and the new
+ 	* buffer/cell_data/bounds are only swapped in once everything succeeded.
+ 	* @since v0.1.0.
 	 */
 
 	static set_grid = function()
@@ -423,8 +416,8 @@ constructor
 		
 		var _gx1 = x_offset;
 		var _gy1 = y_offset;
-		var _gx2 = x_offset + (column_qty	* cell_width	* x_scale);
-		var _gy2 = y_offset + (row_qty		* cell_height	* y_scale);
+		var _gx2 = x_offset + (column_qty * cell_width * x_scale);
+		var _gy2 = y_offset + (row_qty * cell_height * y_scale);
 
 		// Build labels and cell geometry FIRST (convert_letters() can throw here, before any buffer is opened).
 		// Labels exist only on the left column / top row, so they are built once per row and once
@@ -468,18 +461,92 @@ constructor
 		for (var _row = 0; _row < row_qty; ++_row)
 		{
 			var _row_cells = [];
+			var _tile_row = _row + y_shift;
 
 			for (var _column = 0; _column < column_qty; ++_column)
 			{
-				var _x1 = x_offset + (_column	* cell_width	* x_scale);
-				var _y1 = y_offset + (_row		* cell_height	* y_scale);
+				var _tile_column = _column + x_shift;
+				
+				// Base grid cell top-left position
+				var _base_x = x_offset + (_column * cell_width * x_scale);
+				var _base_y = y_offset + (_row * cell_height * y_scale);
+				
+				var _x1 = _base_x;
+				var _y1 = _base_y;
+				var _x2 = _base_x + (cell_width * x_scale);
+				var _y2 = _base_y + (cell_height * y_scale);
+
+				if (tile_data != undefined && 
+					_tile_row >= 0 && _tile_row < array_length(tile_data) && 
+					_tile_column >= 0 && _tile_column < array_length(tile_data[_tile_row]))
+				{
+					var _tile = tile_data[_tile_row][_tile_column];
+					if (_tile != undefined)
+					{
+						var _spr = _tile.sprite;
+						var _ang = _tile.angle;
+						
+						var _spr_w = sprite_get_width(_spr);
+						var _spr_h = sprite_get_height(_spr);
+						var _ox    = sprite_get_xoffset(_spr);
+						var _oy    = sprite_get_yoffset(_spr);
+
+						// Local corners relative to the sprite origin
+						var _local_x1 = -_ox * x_scale;
+						var _local_y1 = -_oy * y_scale;
+						var _local_x2 = (_spr_w - _ox) * x_scale;
+						var _local_y2 = (_spr_h - _oy) * y_scale;
+
+						var _min_x = 0;
+						var _min_y = 0;
+						var _max_x = _spr_w * x_scale;
+						var _max_y = _spr_h * y_scale;
+
+						if (_ang != 0)
+						{
+							var _rad = degtorad(_ang);
+							var _cos = cos(_rad);
+							var _sin = sin(_rad);
+
+							var _rot_x = function(_lx, _ly, _c, _s) { return _lx * _c - _ly * _s; };
+							var _rot_y = function(_lx, _ly, _c, _s) { return _lx * _s + _ly * _c; };
+
+							var _c1x = _rot_x(_local_x1, _local_y1, _cos, _sin);
+							var _c1y = _rot_y(_local_x1, _local_y1, _cos, _sin);
+							var _c2x = _rot_x(_local_x2, _local_y1, _cos, _sin);
+							var _c2y = _rot_y(_local_x2, _local_y1, _cos, _sin);
+							var _c3x = _rot_x(_local_x1, _local_y2, _cos, _sin);
+							var _c3y = _rot_y(_local_x1, _local_y2, _cos, _sin);
+							var _c4x = _rot_x(_local_x2, _local_y2, _cos, _sin);
+							var _c4y = _rot_y(_local_x2, _local_y2, _cos, _sin);
+
+							_min_x = min(_c1x, _c2x, _c3x, _c4x);
+							_min_y = min(_c1y, _c2y, _c3y, _c4y);
+							_max_x = max(_c1x, _c2x, _c3x, _c4x);
+							_max_y = max(_c1y, _c2y, _c3y, _c4y);
+						}
+						else
+						{
+							_min_x = _local_x1;
+							_min_y = _local_y1;
+							_max_x = _local_x2;
+							_max_y = _local_y2;
+						}
+
+						// Invert min offset to correctly position the draw origin so the bounding box aligns with _base_x, _base_y
+						_x1 = _base_x - _min_x;
+						_y1 = _base_y - _min_y;
+						_x2 = _base_x + (_max_x - _min_x);
+						_y2 = _base_y + (_max_y - _min_y);
+					}
+				}
 
 				array_push(_row_cells,
 				{
 					x1 : _x1,
 					y1 : _y1,
-					x2 : _x1 + (cell_width	* x_scale),
-					y2 : _y1 + (cell_height	* y_scale),
+					x2 : _x2,
+					y2 : _y2,
 					outline : true,
 				});
 			}
@@ -529,16 +596,13 @@ constructor
 		grid_y2		= _gy2;
 	}
 	
-	// NOTE: set_grid() is called at the bottom of the constructor, after every static method
-	// it depends on (e.g. convert_letters) has been defined.
-	
 	/**
-	 * @function get_x()
-	 * @description Gets the column index under the given X coordinate.
-	 * @since v0.1.0.
-	 * @param {Real} [_x] X coordinate to check (mouse pointer by default).
-	 * @returns {Real} Column index, clamped to a valid range.
-	 * @self {struct.grid}
+ 	* @function get_x()
+ 	* @description Gets the column index under the given X coordinate.
+ 	* @since v0.1.0.
+ 	* @param {Real} [_x] X coordinate to check (mouse pointer by default).
+ 	* @returns {Real} Column index, clamped to a valid range.
+ 	* @self {struct.grid}
 	 */
 
 	static get_x = function(_x = mouse_x) 
@@ -551,12 +615,12 @@ constructor
 	}
 	
 	/**
-	 * @function get_y()
-	 * @description Gets the row index under the given Y coordinate.
-	 * @since v0.1.0.
-	 * @param {Real} [_y] Y coordinate to check (mouse pointer by default).
-	 * @returns {Real} Row index, clamped to a valid range.
-	 * @self {struct.grid}
+ 	* @function get_y()
+ 	* @description Gets the row index under the given Y coordinate.
+ 	* @since v0.1.0.
+ 	* @param {Real} [_y] Y coordinate to check (mouse pointer by default).
+ 	* @returns {Real} Row index, clamped to a valid range.
+ 	* @self {struct.grid}
 	 */
 	
 	static get_y = function(_y = mouse_y) 
@@ -569,11 +633,11 @@ constructor
 	}
 	
 	/**
-	 * @function shift_x()
-	 * @description Shifts columns. (Negative values shift left.)
-	 * @since v0.1.0.
-	 * @param {Real} _value Amount to add to the current column shift.
-	 * @self {struct.grid}
+ 	* @function shift_x()
+ 	* @description Shifts columns. (Negative values shift left.)
+ 	* @since v0.1.0.
+ 	* @param {Real} _value Amount to add to the current column shift.
+ 	* @self {struct.grid}
 	 */
 
 	static shift_x = function(_value) 
@@ -591,11 +655,11 @@ constructor
 	}
 	
 	/**
-	 * @function shift_y()
-	 * @description Shifts rows. (Negative values shift up.)
-	 * @since v0.1.0.
-	 * @param {Real} _value Amount to add to the current row shift.
-	 * @self {struct.grid}
+ 	* @function shift_y()
+ 	* @description Shifts rows. (Negative values shift up.)
+ 	* @since v0.1.0.
+ 	* @param {Real} _value Amount to add to the current row shift.
+ 	* @self {struct.grid}
 	 */
 	
 	static shift_y = function(_value) 
@@ -613,11 +677,11 @@ constructor
 	}
 	
 	/**
-	 * @function set_coords()
-	 * @description Highlights the row/column labels under the current mouse position.
-	 * Nothing is highlighted while the mouse is outside the grid (get_x/get_y clamp to the edge,
-	 * so without this check the edge row/column would light up from anywhere on screen).
-	 * @since v0.1.0.
+ 	* @function set_coords()
+ 	* @description Highlights the row/column labels under the current mouse position.
+ 	* Nothing is highlighted while the mouse is outside the grid (get_x/get_y clamp to the edge,
+ 	* so without this check the edge row/column would light up from anywhere on screen).
+ 	* @since v0.1.0.
 	 */
 
 	static set_coords = function() 
@@ -641,10 +705,10 @@ constructor
 	}
 	
 	/**
-	 * @function update_row()
-	 * @description Changes the number of rows.
-	 * @since v0.1.0.
-	 * @param {Real} _value Number of rows in the new grid.
+ 	* @function update_row()
+ 	* @description Changes the number of rows.
+ 	* @since v0.1.0.
+ 	* @param {Real} _value Number of rows in the new grid.
 	 */
 
 	static update_row = function(_value)
@@ -662,10 +726,10 @@ constructor
 	}
 	
 	/**
-	 * @function update_column()
-	 * @description Changes the number of columns.
-	 * @since v0.1.0.
-	 * @param {Real} _value Number of columns in the new grid.
+ 	* @function update_column()
+ 	* @description Changes the number of columns.
+ 	* @since v0.1.0.
+ 	* @param {Real} _value Number of columns in the new grid.
 	 */
 
 	static update_column = function(_value)
@@ -683,11 +747,11 @@ constructor
 	}
 
 	/**
-	 * @function zoom()
-	 * @description Zooms in/out while preserving the grid's total on-screen size.
-	 * @since v0.1.0.
-	 * @param {Bool} [_zoom_direction] True to zoom in, false to zoom out.
-	 * @self {struct.grid}
+ 	* @function zoom()
+ 	* @description Zooms in/out while preserving the grid's total on-screen size.
+ 	* @since v0.1.0.
+ 	* @param {Bool} [_zoom_direction] True to zoom in, false to zoom out.
+ 	* @self {struct.grid}
 	 */
 
 	static zoom = function(_zoom_direction = true)
@@ -746,9 +810,9 @@ constructor
 	}
 
 	/**
-	 * @function set_cursor()
-	 * @description Sets the mouse pointer graphic depending on whether the cursor is over the grid.
-	 * @since v0.1.0.
+ 	* @function set_cursor()
+ 	* @description Sets the mouse pointer graphic depending on whether the cursor is over the grid.
+ 	* @since v0.1.0.
 	 */
 
 	static set_cursor = function() 
@@ -773,12 +837,12 @@ constructor
 	}
 
 	/**
-	 * @function convert_letters()
-	 * @description Converts number to a letter the same way as you would see on an atlas or a spreadsheet.
-	 * @since v0.1.0.
-	 * @param {Real} _number The number to convert to a letter(s).
-	 * @return {String} Return letter.
-	 * @pure
+ 	* @function convert_letters()
+ 	* @description Converts number to a letter the same way as you would see on an atlas or a spreadsheet.
+ 	* @since v0.1.0.
+ 	* @param {Real} _number The number to convert to a letter(s).
+ 	* @return {String} Return letter.
+ 	* @pure
 	 */
 
 	static convert_letters = function(_number)
@@ -804,9 +868,9 @@ constructor
 	}
 
 	/**
-	 * @function step()
-	 * @description Executes the step logic for this grid instance (input handling and state updates).
-	 * @since v0.1.0.
+ 	* @function step()
+ 	* @description Executes the step logic for this grid instance (input handling and state updates).
+ 	* @since v0.1.0.
 	 */
 
 	static step = function() 
@@ -835,9 +899,9 @@ constructor
 	}
 	
 	/**
-	 * @function draw()
-	 * @description Executes the draw logic for this grid instance (grid lines and labels).
-	 * @since v0.1.0.
+ 	* @function draw()
+ 	* @description Executes the draw logic for this grid instance (grid lines and labels).
+ 	* @since v0.1.0.
 	 */
 
 	static draw = function() 
@@ -895,10 +959,10 @@ constructor
 	}
 	
 	/**
-	 * @function destroy()
-	 * @description Removes this instance from the global grid list, frees GPU resources, restores the cursor, and wipes all instance data.
-	 * @since v0.1.0.
-	 * @self {struct.grid}
+ 	* @function destroy()
+ 	* @description Removes this instance from the global grid list, frees GPU resources, restores the cursor, and wipes all instance data.
+ 	* @since v0.1.0.
+ 	* @self {struct.grid}
 	 */
 
 	static destroy = function() 
