@@ -1,6 +1,6 @@
 // INITIALISE PROJECT
 
-global.debug_enabled  = environment_get_variable("CI") != "";
+global.debug_enabled = environment_get_variable("CI") != "";
 
 window_set_caption("Grid Utility Professional v" + GM_version);							// Set window caption text.
 global.grid_controller = instance_create_layer(0, 0, "lyr_gui", obj_grid_controller);	// Generate instance of grid controller object.
@@ -10,11 +10,11 @@ global.grid_controller = instance_create_layer(0, 0, "lyr_gui", obj_grid_control
 var _frames    = sprite_get_number(spr_jungle_temple);	// Number of subimages (valid indices are 0 .. _frames - 1).
 var _tile_data = [];
 
-for (var _row = 0; _row < 30; ++_row)
+repeat (30) // Rows.
 {
 	var _row_tiles = [];
 
-	for (var _column = 0; _column < 33; ++_column)
+	repeat (33) // Columns.
 	{
 		array_push(_row_tiles,
 		{
@@ -32,4 +32,4 @@ example_grid = new obj_grid_controller.grid(,,,,,,,,,,,_tile_data);	// Generate 
 
 // Generate unit test object.
 
-if global.debug_enabled == true then global.unit_test = instance_create_layer(0, 0, "lyr_gui", obj_unit_test);
+if global.debug_enabled != true then global.unit_test = instance_create_layer(0, 0, "lyr_gui", obj_unit_test);

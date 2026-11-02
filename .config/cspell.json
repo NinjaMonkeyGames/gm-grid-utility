@@ -8,7 +8,8 @@
     "**AppDir",
     "package.json",
     ".git",
-    "**.yyp"
+    "**.yyp",
+    "/project_files"
   ],
   "language": "en-GB",
   "overrides": [

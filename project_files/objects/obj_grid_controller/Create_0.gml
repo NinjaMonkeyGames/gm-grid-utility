@@ -1,9 +1,18 @@
-// SCRIPT ASSET: grid
-// Constructor class for generating a 2D grid.
-//
-// Code outside a function in a script asset runs ONCE at game start, so the globals below are
-// initialised exactly once and can never be wiped by creating another object instance.
-// Usage:  example_grid = new grid(...);
+// CONSTRUCTOR CLASS FOR GENERATING A 2D GRID
+
+/// @description Singleton guard
+// FIRST thing in Create, so a duplicate controller exits before it can touch any globals below.
+
+if (variable_global_exists("controller") && instance_exists(global.controller))
+{
+	show_debug_message("A singleton pattern has been implemented for this object. Please don't call me again!");
+    instance_destroy();	// Cleanup instance from memory.
+    exit;				// Stop the rest of Create from running
+}
+
+global.controller = id;
+
+/// @description Generate 2D grid
 
 global.grid_list = [];			 // Stores array of grid structs
 global.grid_vformat = undefined; // Shared vertex format for all grid instances
