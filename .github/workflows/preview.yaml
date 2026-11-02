@@ -284,12 +284,15 @@ jobs:
         run: |
           Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
           sleep 2
-          npx @gamemaker/gm-cli@latest run --verbose 2>&1 | tee test_output.log || true
+          npx @gamemaker/gm-cli@latest run --verbose 2>&1 | tee "$GITHUB_WORKSPACE/test_output.log" || true
 
+      # The log is written to (and read from) the workspace root rather than
+      # the project folder, so renaming the project folder can no longer
+      # leave "Run tests" and "Evaluate results" pointing at different paths.
       - name: Evaluate results
         run: |
           chmod +x ./.config/gm-fail.sh
-          ./.config/gm-fail.sh ./gm-grid-utility/test_output.log
+          ./.config/gm-fail.sh "$GITHUB_WORKSPACE/test_output.log"
 
   # A compile *sanity check* - `needs: gm-cli-tests` specifically (not the
   # lint jobs directly), since a project whose own unit tests fail has no
