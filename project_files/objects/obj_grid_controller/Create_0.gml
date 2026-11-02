@@ -117,7 +117,8 @@ constructor
 
 	static is_finite_real = function(_value)
 	{
-		return is_real(_value) && !is_nan(_value) && !is_infinity(_value);
+		// is_infinity() only reports positive infinity, so -infinity is compared explicitly.
+		return is_real(_value) && !is_nan(_value) && (_value != infinity) && (_value != -infinity);
 	};
 
 	/**
