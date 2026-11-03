@@ -29,7 +29,7 @@ repeat (30) // Rows.
 }
 
 example_grid = new obj_grid_controller.grid(,,,,,,,,,,,_tile_data);	// Generate example grid instance (all other arguments use the constructor defaults).
-//example_grid._tile_data[0].angle = 90;
+
 // Generate unit test object.
 
 if global.debug_enabled == true then global.unit_test = instance_create_layer(0, 0, "lyr_gui", obj_unit_test);

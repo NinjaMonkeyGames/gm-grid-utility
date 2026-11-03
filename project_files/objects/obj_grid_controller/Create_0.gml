@@ -467,15 +467,15 @@ constructor
 			{
 				var _tile_column = _column + x_shift;
 				
-				// Standard cell top-left position
-				var _x1 = x_offset + (_column * cell_width * x_scale);
-				var _y1 = y_offset + (_row * cell_height * y_scale);
-				var _x2 = _x1 + (cell_width * x_scale);
-				var _y2 = _y1 + (cell_height * y_scale);
-
-				// Center of the cell where the middle-center sprite origin sits
-				var _draw_x = _x1 + (cell_width * x_scale) / 2;
-				var _draw_y = _y1 + (cell_height * y_scale) / 2;
+				var _base_x = x_offset + (_column * cell_width * x_scale);
+				var _base_y = y_offset + (_row * cell_height * y_scale);
+				
+				var _draw_x = _base_x;
+				var _draw_y = _base_y;
+				var _x1 = _base_x;
+				var _y1 = _base_y;
+				var _x2 = _base_x + (cell_width * x_scale);
+				var _y2 = _base_y + (cell_height * y_scale);
 
 				if (tile_data != undefined && 
 					_tile_row >= 0 && _tile_row < array_length(tile_data) && 
@@ -487,20 +487,22 @@ constructor
 						var _spr = _tile.sprite;
 						var _ang = _tile.angle;
 						
+						// Actively retrieve the sprite's true dimension and custom origin
 						var _spr_w = sprite_get_width(_spr);
 						var _spr_h = sprite_get_height(_spr);
+						var _ox    = sprite_get_xoffset(_spr);
+						var _oy    = sprite_get_yoffset(_spr);
 
-						// If angle is non-zero, calculate the rotated bounding box centered around the cell
+						// 1. Calculate local positions of all 4 corners relative to the sprite's origin
+						var _local_x1 = -_ox * x_scale;
+						var _local_y1 = -_oy * y_scale;
+						var _local_x2 = (_spr_w - _ox) * x_scale;
+						var _local_y2 = (_spr_h - _oy) * y_scale;
+
+						var _min_x, _min_y, _max_x, _max_y;
+
 						if (_ang != 0)
 						{
-							var _half_w = (_spr_w * x_scale) / 2;
-							var _half_h = (_spr_h * y_scale) / 2;
-							
-							var _local_x1 = -_half_w;
-							var _local_y1 = -_half_h;
-							var _local_x2 = _half_w;
-							var _local_y2 = _half_h;
-
 							var _rad = degtorad(_ang);
 							var _cos = cos(_rad);
 							var _sin = sin(_rad);
@@ -508,6 +510,7 @@ constructor
 							var _rot_x = function(_lx, _ly, _c, _s) { return _lx * _c - _ly * _s; };
 							var _rot_y = function(_lx, _ly, _c, _s) { return _lx * _s + _ly * _c; };
 
+							// Rotate the 4 bounding corners around the origin
 							var _c1x = _rot_x(_local_x1, _local_y1, _cos, _sin);
 							var _c1y = _rot_y(_local_x1, _local_y1, _cos, _sin);
 							var _c2x = _rot_x(_local_x2, _local_y1, _cos, _sin);
@@ -517,16 +520,28 @@ constructor
 							var _c4x = _rot_x(_local_x2, _local_y2, _cos, _sin);
 							var _c4y = _rot_y(_local_x2, _local_y2, _cos, _sin);
 
-							var _min_x = min(_c1x, _c2x, _c3x, _c4x);
-							var _min_y = min(_c1y, _c2y, _c3y, _c4y);
-							var _max_x = max(_c1x, _c2x, _c3x, _c4x);
-							var _max_y = max(_c1y, _c2y, _c3y, _c4y);
-
-							_x1 = _draw_x + _min_x;
-							_y1 = _draw_y + _min_y;
-							_x2 = _draw_x + _max_x;
-							_y2 = _draw_y + _max_y;
+							_min_x = min(_c1x, _c2x, _c3x, _c4x);
+							_min_y = min(_c1y, _c2y, _c3y, _c4y);
+							_max_x = max(_c1x, _c2x, _c3x, _c4x);
+							_max_y = max(_c1y, _c2y, _c3y, _c4y);
 						}
+						else
+						{
+							_min_x = _local_x1;
+							_min_y = _local_y1;
+							_max_x = _local_x2;
+							_max_y = _local_y2;
+						}
+
+						// 2. Compensate draw position so bounding box aligns with _base_x, _base_y no matter the origin
+						_draw_x = _base_x - _min_x;
+						_draw_y = _base_y - _min_y;
+
+						// 3. Final bounding box dimensions mapped to the cell
+						_x1 = _base_x;
+						_y1 = _base_y;
+						_x2 = _base_x + (_max_x - _min_x);
+						_y2 = _base_y + (_max_y - _min_y);
 					}
 				}
 
