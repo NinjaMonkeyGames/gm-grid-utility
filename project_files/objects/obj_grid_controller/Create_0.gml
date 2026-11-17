@@ -14,32 +14,33 @@
 // 
 // --- PHASE 3: GRID API & METHODS (Constructor Scope) ---
 // 3.1 Core Build & Generation Methods
-//     3.1a set_grid (Vertex buffer & label layout generation)
+//      3.1a set_grid (Vertex buffer & label layout generation)
 //          - Reset previous build data [3.1a.1]
 //          - Measure font metrics [3.1a.2]
-//          - Build row labels [3.1a.3]
-//          - Build column labels [3.1a.4]
+//          - Build row labels (incorporating y_shift) [3.1a.3]
+//          - Build column labels (incorporating x_shift) [3.1a.4]
 //          - Restore font [3.1a.5]
 //          - Build vertex buffer lines [3.1a.6]
 //              - Build row lines [3.1a.6a]
 //              - Build column lines [3.1a.6b]
 //              - Close buffer [3.1a.6c]
 // 3.2 Internal Helpers & Utilities
-//     3.2a convert_letters (Atlas-style coordinate converter)
-//     3.2b guard_alive (Instance destruction validation guard)
-//     3.2c get_x (Get column index from X coordinate)
-//     3.2d get_y (Get row index from Y coordinate)
-//     3.2e shift_x (Shift columns utility)
+//      3.2a convert_letters (Atlas-style coordinate converter)
+//      3.2b guard_alive (Instance destruction validation guard)
+//      3.2c get_x (Get column index from X coordinate)
+//      3.2d get_y (Get row index from Y coordinate)
+//      3.2e shift_x (Shift columns utility)
+//      3.2f shift_y (Shift rows utility)
 // 3.3 Lifecycle & Event Methods
-//     3.3a step (Frame update logic)
-//     3.3b draw (State preservation & rendering)
+//      3.3a step (Frame update logic)
+//      3.3b draw (State preservation & rendering)
 //          - Guard destroyed check [3.3b.1]
 //          - Store current draw values [3.3b.2]
 //          - Draw row labels [3.3b.3]
 //          - Draw column labels [3.3b.4]
 //          - Restore previous draw values [3.3b.5]
 //          - Submit vertex buffer lines [3.3b.6]
-//     3.3c destroy (Resource cleanup & self-unlinking)
+//      3.3c destroy (Resource cleanup & self-unlinking)
 // 
 // --- PHASE 4: INITIALIZATION FINALIZE (Create Event) ---
 // 4.1 Run initial grid build
@@ -57,6 +58,27 @@
 // 7.3 Free shared global vertex format buffer
 // =============================================================================
 
+// SOFT LIMITS
+
+#macro  LIMIT_CELL_WIDTH_MIN 8
+#macro  LIMIT_CELL_WIDTH_MAX 256
+#macro  LIMIT_CELL_HEIGHT_MIN 8
+#macro  LIMIT_CELL_HEIGHT_MAX 256
+
+#macro  LIMIT_ROW_QTY_MIN 1
+#macro  LIMIT_ROW_QTY_MAX 128
+#macro  LIMIT_COLUMN_QTY_MIN 1
+#macro  LIMIT_COLUMN_QTY_MAX 128
+
+#macro LIMIT_ROW_SHIFT_MIN 0
+#macro LIMIT_ROW_SHIFT_MAX 99
+#macro LIMIT_COLUMN_SHIFT_MIN 0
+#macro LIMIT_COLUMN_SHIFT_MAX 99
+
+#macro LIMIT_X_SCALE_MIN 0.25
+#macro LIMIT_Y_SCALE_MIN 0.25
+#macro LIMIT_X_SCALE_MAX 2
+#macro LIMIT_Y_SCALE_MAX 2
 
 // Singleton guard [1.1]
 
@@ -69,28 +91,27 @@ if (variable_global_exists("controller") && instance_exists(global.controller))
 
 // Declare globals [1.2]
 
-global.controller   = id;             // Without this, the guard above can never trigger.
-global.grid_list    = [];             // Stores array of grid structs.
-global.grid_vformat = undefined;      // Shared vertex format for all grid instances.
-
+global.controller   = id;           // Without this, the guard above can never trigger.
+global.grid_list    = [];           // Stores array of grid structs.
+global.grid_vformat = undefined;	// Shared vertex format for all grid instances.
 
 // Initialise constructor [2.1]
 
 /**
- * @function                                grid
- * @description                             Generates a 2D grid with row/column labels.
- * @param {Real}   [_x_offset]              Draw position (horizontal).
- * @param {Real}   [_y_offset]              Draw position (vertical).
- * @param {Real}   [_cell_width]            Width of a cell.
- * @param {Real}   [_cell_height]           Height of a cell.
- * @param {Real}   [_row_qty]               Number of rows.
- * @param {Real}   [_column_qty]            Number of columns.
- * @param {Bool}   [_label_text_type_row]     Row labels as letters (true) or numbers (false).
- * @param {Bool}   [_label_text_type_column] Column labels as letters (true) or numbers (false).
- * @param {Real}   [_grid_colour]           Colour of the grid lines.
- * @param {Real}   [_text_colour]           Colour of label text.
- * @param {Real}   [_text_selection_colour] Colour of label text for selected cell.
- * @param {Real}   [_font]                  Set grid text font.
+ * @function                                     grid
+ * @description                                  Generates a 2D grid with row/column labels.
+ * @param {Real}   [_x_offset]                   Draw position (horizontal).
+ * @param {Real}   [_y_offset]                   Draw position (vertical).
+ * @param {Real}   [_cell_width]                 Width of a cell.
+ * @param {Real}   [_cell_height]                Height of a cell.
+ * @param {Real}   [_row_qty]                    Number of rows.
+ * @param {Real}   [_column_qty]                 Number of columns.
+ * @param {Bool}   [_label_text_type_row]        Row labels as letters (true) or numbers (false).
+ * @param {Bool}   [_label_text_type_column]     Column labels as letters (true) or numbers (false).
+ * @param {Real}   [_grid_colour]                Colour of the grid lines.
+ * @param {Real}   [_text_colour]                Colour of label text.
+ * @param {Real}   [_text_selection_colour]      Colour of label text for selected cell.
+ * @param {Real}   [_font]                       Set grid text font.
  * @returns        {Struct.grid}
  */
  
@@ -107,7 +128,7 @@ constructor
 {
     // Set core variables [2.2]
     
-    is_destroyed                     = false; // Set true by destroy(). Public methods check this before running.
+    is_destroyed                       = false; // Set true by destroy(). Public methods check this before running.
 
     label_text_grid_gap_column   = 6;
     label_text_grid_gap_row      = 12;
@@ -118,6 +139,9 @@ constructor
     
     x_scale = 1;
     y_scale = 1;
+    
+    x_shift = 0;
+    y_shift = 0;
     
     // Import arguments from constructor [2.3]
     
@@ -179,7 +203,7 @@ constructor
         guard_alive(); // Prevents error if called mid deletion.
 
         // Reset previous build data [3.1a.1]
-
+		
         row_labels    = [];
         column_labels = [];
         
@@ -190,7 +214,7 @@ constructor
         }
 
         // Measure font metrics [3.1a.2]
-
+		
         var _old_font = draw_get_font();
         draw_set_font(font);
 
@@ -199,11 +223,12 @@ constructor
         var _gx2 = x_offset + (column_qty * cell_width);
         var _gy2 = y_offset + (row_qty * cell_height);
         
-        // Build row labels [3.1a.3]
-
+        // Build row labels (incorporating y_shift) [3.1a.3]
+		
         for (var _row = 0; _row < row_qty; ++_row)
         {
-            var _text = label_text_type_row ? convert_letters(_row) : string(_row); 
+            var _actual_row = _row + y_shift;
+            var _text = label_text_type_row ? convert_letters(_actual_row) : string(_actual_row); 
             
             array_push(row_labels,
             {
@@ -213,11 +238,12 @@ constructor
             });
         }
 
-        // Build column labels [3.1a.4]
-
+        // Build column labels (incorporating x_shift) [3.1a.4]
+		
         for (var _column = 0; _column < column_qty; ++_column)
         {
-            var _text = label_text_type_column ? convert_letters(_column) : string(_column); 
+            var _actual_column = _column + x_shift;
+            var _text = label_text_type_column ? convert_letters(_actual_column) : string(_actual_column); 
             
             array_push(column_labels,
             {
@@ -228,16 +254,16 @@ constructor
         }
         
         // Restore font [3.1a.5]
-        
+		
         draw_set_font(_old_font); 
 
         // Build vertex buffer lines [3.1a.6]
-
+		
         vbuff = vertex_create_buffer();
         vertex_begin(vbuff, global.grid_vformat);
         
         // Build row lines [3.1a.6a]
-        
+		
         for (var _row = 0; _row <= row_qty; ++_row)
         {
             var _y = y_offset + (_row * cell_height);
@@ -247,7 +273,7 @@ constructor
         }
         
         // Build column lines [3.1a.6b]
-
+		
         for (var _column = 0; _column <= column_qty; ++_column)
         {
             var _x = x_offset + (_column * cell_width);
@@ -257,7 +283,7 @@ constructor
         }
         
         // Close buffer [3.1a.6c]
-        
+		
         vertex_end(vbuff);
         vertex_freeze(vbuff);
     }
@@ -301,7 +327,7 @@ constructor
     
     static get_x = function(_x = mouse_x) 
     {
-        guard_alive();
+        guard_alive(); // Prevents error if called mid deletion. 
         
         return clamp(floor((_x - x_offset) / (cell_width * x_scale)), 0, floor(column_qty) - 1);
     }
@@ -319,7 +345,7 @@ constructor
     
     static get_y = function(_y = mouse_y) 
     {
-        guard_alive();
+        guard_alive(); // Prevents error if called mid deletion.
 
         return clamp(floor((_y - y_offset) / (cell_height * y_scale)), 0, floor(row_qty) - 1);
     }
@@ -331,8 +357,36 @@ constructor
      * @param {Real} _value Amount to add to the current column shift.
      * @self {struct.grid}
      */
-    
+
     // shift_x (Shift columns utility) [3.2e]
+	
+    static shift_x = function(_value) 
+    {
+        guard_alive(); // Prevents error if called mid deletion.
+        
+        x_shift = clamp(x_shift + _value, LIMIT_COLUMN_SHIFT_MIN, max(LIMIT_COLUMN_SHIFT_MIN, 1 + LIMIT_COLUMN_SHIFT_MAX - column_qty));
+
+        set_grid();
+    }
+    
+    /**
+     * @function shift_y()
+     * @description Shifts rows. (Negative values shift up.)
+     * @since v0.1.0.
+     * @param {Real} _value Amount to add to the current row shift.
+     * @self {struct.grid}
+     */
+    
+    // shift_y (Shift rows utility) [3.2f]
+	
+    static shift_y = function(_value) 
+    {
+        guard_alive(); // Prevents error if called mid deletion.
+
+        y_shift = clamp(y_shift + _value, LIMIT_ROW_SHIFT_MIN, max(LIMIT_ROW_SHIFT_MIN, 1 + LIMIT_ROW_SHIFT_MAX - row_qty));
+        
+        set_grid();
+    }
     
     // 3.3 Lifecycle & Event Methods [3.3]
     
@@ -345,8 +399,25 @@ constructor
     
     static step = function()
     {
-        show_debug_message(self.get_x());
-        show_debug_message(self.get_y());
+        if (keyboard_check_pressed(vk_right))
+        {
+            shift_x(1);
+        }
+        
+        if (keyboard_check_pressed(vk_left))
+        {
+            shift_x(-1);
+        }
+		
+		if (keyboard_check_pressed(vk_up))
+        {
+            shift_y(1);
+        }
+        
+        if (keyboard_check_pressed(vk_down))
+        {
+            shift_y(-1);
+        }
     }
 
     // draw (State preservation & rendering) [3.3b]
