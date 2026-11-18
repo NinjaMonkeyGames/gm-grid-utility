@@ -2,6 +2,12 @@
 // GRID CONTROLLER OBJECT ARCHITECTURE OVERVIEW
 // =============================================================================
 // 
+// --- PHASE 0: CONSTANTS & SOFT LIMITS (Create Event) ---
+// 0.1 Cell dimension limits
+// 0.2 Row and column quantity limits
+// 0.3 Row and column shift limits
+// 0.4 Scale limits
+// 
 // --- PHASE 1: CONTROLLER INITIALIZATION (Create Event) ---
 // 1.1 Singleton guard
 // 1.2 Declare globals
@@ -60,21 +66,25 @@
 
 // SOFT LIMITS
 
+// Cell dimension limits [0.1]
 #macro  LIMIT_CELL_WIDTH_MIN 8
 #macro  LIMIT_CELL_WIDTH_MAX 256
 #macro  LIMIT_CELL_HEIGHT_MIN 8
 #macro  LIMIT_CELL_HEIGHT_MAX 256
 
+// Row and column quantity limits [0.2]
 #macro  LIMIT_ROW_QTY_MIN 1
 #macro  LIMIT_ROW_QTY_MAX 128
 #macro  LIMIT_COLUMN_QTY_MIN 1
 #macro  LIMIT_COLUMN_QTY_MAX 128
 
+// Row and column shift limits [0.3]
 #macro LIMIT_ROW_SHIFT_MIN 0
 #macro LIMIT_ROW_SHIFT_MAX 99
 #macro LIMIT_COLUMN_SHIFT_MIN 0
 #macro LIMIT_COLUMN_SHIFT_MAX 99
 
+// Scale limits [0.4]
 #macro LIMIT_X_SCALE_MIN 0.25
 #macro LIMIT_Y_SCALE_MIN 0.25
 #macro LIMIT_X_SCALE_MAX 2
@@ -93,25 +103,25 @@ if (variable_global_exists("controller") && instance_exists(global.controller))
 
 global.controller   = id;           // Without this, the guard above can never trigger.
 global.grid_list    = [];           // Stores array of grid structs.
-global.grid_vformat = undefined;	// Shared vertex format for all grid instances.
+global.grid_vformat = undefined;    // Shared vertex format for all grid instances.
 
 // Initialise constructor [2.1]
 
 /**
- * @function                                     grid
- * @description                                  Generates a 2D grid with row/column labels.
- * @param {Real}   [_x_offset]                   Draw position (horizontal).
- * @param {Real}   [_y_offset]                   Draw position (vertical).
- * @param {Real}   [_cell_width]                 Width of a cell.
- * @param {Real}   [_cell_height]                Height of a cell.
- * @param {Real}   [_row_qty]                    Number of rows.
- * @param {Real}   [_column_qty]                 Number of columns.
- * @param {Bool}   [_label_text_type_row]        Row labels as letters (true) or numbers (false).
- * @param {Bool}   [_label_text_type_column]     Column labels as letters (true) or numbers (false).
- * @param {Real}   [_grid_colour]                Colour of the grid lines.
- * @param {Real}   [_text_colour]                Colour of label text.
- * @param {Real}   [_text_selection_colour]      Colour of label text for selected cell.
- * @param {Real}   [_font]                       Set grid text font.
+ * @function                                    grid
+ * @description                                 Generates a 2D grid with row/column labels.
+ * @param {Real}   [_x_offset]                  Draw position (horizontal).
+ * @param {Real}   [_y_offset]                  Draw position (vertical).
+ * @param {Real}   [_cell_width]                Width of a cell.
+ * @param {Real}   [_cell_height]               Height of a cell.
+ * @param {Real}   [_row_qty]                   Number of rows.
+ * @param {Real}   [_column_qty]                Number of columns.
+ * @param {Bool}   [_label_text_type_row]       Row labels as letters (true) or numbers (false).
+ * @param {Bool}   [_label_text_type_column]    Column labels as letters (true) or numbers (false).
+ * @param {Real}   [_grid_colour]               Colour of the grid lines.
+ * @param {Real}   [_text_colour]               Colour of label text.
+ * @param {Real}   [_text_selection_colour]     Colour of label text for selected cell.
+ * @param {Real}   [_font]                      Set grid text font.
  * @returns        {Struct.grid}
  */
  
@@ -128,7 +138,7 @@ constructor
 {
     // Set core variables [2.2]
     
-    is_destroyed                       = false; // Set true by destroy(). Public methods check this before running.
+    is_destroyed                         = false; // Set true by destroy(). Public methods check this before running.
 
     label_text_grid_gap_column   = 6;
     label_text_grid_gap_row      = 12;
@@ -203,7 +213,7 @@ constructor
         guard_alive(); // Prevents error if called mid deletion.
 
         // Reset previous build data [3.1a.1]
-		
+        
         row_labels    = [];
         column_labels = [];
         
@@ -214,7 +224,7 @@ constructor
         }
 
         // Measure font metrics [3.1a.2]
-		
+        
         var _old_font = draw_get_font();
         draw_set_font(font);
 
@@ -224,7 +234,7 @@ constructor
         var _gy2 = y_offset + (row_qty * cell_height);
         
         // Build row labels (incorporating y_shift) [3.1a.3]
-		
+        
         for (var _row = 0; _row < row_qty; ++_row)
         {
             var _actual_row = _row + y_shift;
@@ -239,7 +249,7 @@ constructor
         }
 
         // Build column labels (incorporating x_shift) [3.1a.4]
-		
+        
         for (var _column = 0; _column < column_qty; ++_column)
         {
             var _actual_column = _column + x_shift;
@@ -254,16 +264,16 @@ constructor
         }
         
         // Restore font [3.1a.5]
-		
+        
         draw_set_font(_old_font); 
 
         // Build vertex buffer lines [3.1a.6]
-		
+        
         vbuff = vertex_create_buffer();
         vertex_begin(vbuff, global.grid_vformat);
         
         // Build row lines [3.1a.6a]
-		
+        
         for (var _row = 0; _row <= row_qty; ++_row)
         {
             var _y = y_offset + (_row * cell_height);
@@ -273,7 +283,7 @@ constructor
         }
         
         // Build column lines [3.1a.6b]
-		
+        
         for (var _column = 0; _column <= column_qty; ++_column)
         {
             var _x = x_offset + (_column * cell_width);
@@ -283,7 +293,7 @@ constructor
         }
         
         // Close buffer [3.1a.6c]
-		
+        
         vertex_end(vbuff);
         vertex_freeze(vbuff);
     }
@@ -359,7 +369,7 @@ constructor
      */
 
     // shift_x (Shift columns utility) [3.2e]
-	
+    
     static shift_x = function(_value) 
     {
         guard_alive(); // Prevents error if called mid deletion.
@@ -378,7 +388,7 @@ constructor
      */
     
     // shift_y (Shift rows utility) [3.2f]
-	
+    
     static shift_y = function(_value) 
     {
         guard_alive(); // Prevents error if called mid deletion.
@@ -408,8 +418,8 @@ constructor
         {
             shift_x(-1);
         }
-		
-		if (keyboard_check_pressed(vk_up))
+        
+        if (keyboard_check_pressed(vk_up))
         {
             shift_y(1);
         }

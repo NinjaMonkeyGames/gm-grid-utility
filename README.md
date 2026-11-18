@@ -85,8 +85,8 @@ from scratch.
 
 ### GAMEMAKER
 
-- GameMaker version: `2026.0.0.16`
-- Runtime version: `2026.0.0.23`
+- GameMaker version: `2026.1.0.27`
+- Runtime version: `2026.1.0.28`
 - Target platforms: Windows, Linux
 
 ### IDE
