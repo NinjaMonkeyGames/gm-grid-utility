@@ -55,5 +55,5 @@ repeat (30) // Rows.
 
 // Generate example grid instances [3.3]
 
-example_grid   = new obj_grid_controller.grid();      // Generate example grid instance (uses constructor defaults).
+example_grid   = new obj_grid_controller.grid(,,,,,,,,,,,,_tile_data);      // Generate example grid instance (uses constructor defaults).
 //example_grid_0 = new obj_grid_controller.grid(10, 10); // Generate secondary grid instance with custom offset.

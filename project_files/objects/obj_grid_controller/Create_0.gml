@@ -30,6 +30,13 @@
 //              - Build row lines [3.1a.6a]
 //              - Build column lines [3.1a.6b]
 //              - Close buffer [3.1a.6c]
+//          - Build tile draw positions (origin & rotation compensated) [3.1a.7]
+//              - Row loop & out of bounds guard [3.1a.7a]
+//              - Column loop & out of bounds guard [3.1a.7b]
+//              - Sprite corners relative to origin [3.1a.7c]
+//              - Rotation values [3.1a.7d]
+//              - Rotated bounding box top-left [3.1a.7e]
+//              - Store draw position aligned to cell top-left [3.1a.7f]
 // 3.2 Internal Helpers & Utilities
 //      3.2a convert_letters (Atlas-style coordinate converter)
 //      3.2b guard_alive (Instance destruction validation guard)
@@ -168,6 +175,7 @@ constructor
     vbuff                        = -1;
     row_labels                   = [];
     column_labels                = [];
+    tile_positions               = [];    // Precomputed tile draw positions, indexed [row][column] relative to the visible window (populated by set_grid).
     
     cache_cursor                 = window_get_cursor();
     
@@ -237,8 +245,8 @@ constructor
     
     /**
      * @function    set_grid
-     * @description Builds the label positions and the grid line vertex buffer, applying x_scale/y_scale
-     * to every position. Safe to call again after changing any grid property.
+     * @description Builds the label positions, the grid line vertex buffer and the tile draw positions,
+     * applying x_scale/y_scale to every position. Safe to call again after changing any grid property.
      */
     
     // set_grid (Vertex buffer & label layout generation) [3.1a]
@@ -336,6 +344,79 @@ constructor
         
         vertex_end(vbuff);
         vertex_freeze(vbuff); // Static until the next set_grid() call.
+        
+        // Build tile draw positions (origin & rotation compensated) [3.1a.7]
+        
+        tile_positions = [];
+        
+        if (!is_undefined(tile_data))
+        {
+            var _tile_data_row_qty = array_length(tile_data);
+            
+            // Row loop & out of bounds guard [3.1a.7a]
+            
+            for (var _row = 0; _row < row_qty; ++_row)
+            {
+                var _tile_row = _row + y_shift;
+                
+                if (_tile_row >= _tile_data_row_qty) then break; // No more tile rows.
+                
+                // Column count is read per row, as rows are not guaranteed to be the same length.
+                
+                var _tile_data_column_qty = array_length(tile_data[_tile_row]);
+                var _row_positions        = [];
+                
+                // Column loop & out of bounds guard [3.1a.7b]
+                
+                for (var _column = 0; _column < column_qty; ++_column)
+                {
+                    var _tile_column = _column + x_shift;
+                    
+                    if (_tile_column >= _tile_data_column_qty) then break; // Row is shorter.
+                    
+                    var _tile   = tile_data[_tile_row][_tile_column];
+                    var _sprite = _tile.sprite;
+                    var _angle  = _tile.angle;
+                    
+                    // Sprite corners relative to origin [3.1a.7c]
+                    
+                    var _dx0 = -sprite_get_xoffset(_sprite) * x_scale;
+                    var _dx1 = _dx0 + sprite_get_width(_sprite)  * x_scale;
+                    var _dy0 = -sprite_get_yoffset(_sprite) * y_scale;
+                    var _dy1 = _dy0 + sprite_get_height(_sprite) * y_scale;
+                    
+                    // Rotation values [3.1a.7d]
+                    
+                    // GameMaker rotates counter-clockwise. Round for exact multiples of 90 to avoid float error.
+                    
+                    var _cos = dcos(_angle);
+                    var _sin = dsin(_angle);
+                    
+                    if (_angle mod 90 == 0)
+                    {
+                        _cos = round(_cos);
+                        _sin = round(_sin);
+                    }
+                    
+                    // Rotated bounding box top-left [3.1a.7e]
+                    
+                    // x' = dx*cos + dy*sin, y' = -dx*sin + dy*cos (separable, so min of sums = sum of mins).
+                    
+                    var _min_x = min(_dx0 * _cos, _dx1 * _cos) + min(_dy0 * _sin, _dy1 * _sin);
+                    var _min_y = min(-_dx0 * _sin, -_dx1 * _sin) + min(_dy0 * _cos, _dy1 * _cos);
+                    
+                    // Store draw position aligned to cell top-left [3.1a.7f]
+                    
+                    array_push(_row_positions,
+                    {
+                        x : (x_offset + (_column * _cell_w)) - _min_x,
+                        y : (y_offset + (_row    * _cell_h)) - _min_y,
+                    });
+                }
+                
+                array_push(tile_positions, _row_positions);
+            }
+        }
     }
     
     // 3.2 Internal Helpers & Utilities [3.2]
@@ -587,7 +668,7 @@ constructor
         }
     }
     
-	/**
+    /**
      * @function set_cursor()
      * @description Sets the mouse pointer graphic depending on whether the given point is over the grid.
      * @since v0.1.0.
@@ -682,13 +763,13 @@ constructor
                     
                     if (_tile_column >= _tile_data_column_qty) then break; // Out of bounds guard: row is shorter.
                     
-                    var _tile = tile_data[_tile_row][_tile_column];
+                    var _tile          = tile_data[_tile_row][_tile_column];
+                    var _tile_position = tile_positions[_row][_column]; // Precomputed in set_grid().
                     
                     draw_sprite_ext
                     (
                         _tile.sprite, _tile.index,
-                        x_offset + (_column * cell_width  * x_scale),
-                        y_offset + (_row    * cell_height * y_scale),
+                        _tile_position.x, _tile_position.y,
                         x_scale, y_scale, _tile.angle, c_white, _tile.alpha
                     );
                 }
