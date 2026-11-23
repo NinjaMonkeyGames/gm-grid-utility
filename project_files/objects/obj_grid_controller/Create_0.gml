@@ -20,7 +20,7 @@
 // 
 // --- PHASE 3: GRID API & METHODS (Constructor Scope) ---
 // 3.1 Core Build & Generation Methods
-//      3.1a set_grid (Vertex buffer & label layout generation)
+//      3.1a set_grid (Vertex buffer, label layout & tile draw list generation)
 //          - Reset previous build data [3.1a.1]
 //          - Measure font metrics & calculate scaled bounds [3.1a.2]
 //          - Build row labels (incorporating y_shift & y_scale) [3.1a.3]
@@ -30,13 +30,13 @@
 //              - Build row lines [3.1a.6a]
 //              - Build column lines [3.1a.6b]
 //              - Close buffer [3.1a.6c]
-//          - Build tile draw positions (origin & rotation compensated) [3.1a.7]
+//          - Build tile draw entries (origin & rotation compensated) [3.1a.7]
 //              - Row loop & out of bounds guard [3.1a.7a]
 //              - Column loop & out of bounds guard [3.1a.7b]
 //              - Sprite corners relative to origin [3.1a.7c]
 //              - Rotation values [3.1a.7d]
 //              - Rotated bounding box top-left [3.1a.7e]
-//              - Store draw position aligned to cell top-left [3.1a.7f]
+//              - Store draw entry aligned to cell top-left [3.1a.7f]
 // 3.2 Internal Helpers & Utilities
 //      3.2a convert_letters (Atlas-style coordinate converter)
 //      3.2b guard_alive (Instance destruction validation guard)
@@ -135,22 +135,22 @@ global.grid_vformat = undefined;    // Shared vertex format for all grid instanc
 // Initialise constructor [2.1]
 
 /**
- * @function                                    grid
- * @description                                 Generates a 2D grid with row/column labels and optional tiles.
- * @param {Real}   [_x_offset]                  Draw position (horizontal).
- * @param {Real}   [_y_offset]                  Draw position (vertical).
- * @param {Real}   [_cell_width]                Width of a cell.
- * @param {Real}   [_cell_height]               Height of a cell.
- * @param {Real}   [_row_qty]                   Number of rows.
- * @param {Real}   [_column_qty]                Number of columns.
- * @param {Bool}   [_label_text_type_row]       Row labels as letters (true) or numbers (false).
- * @param {Bool}   [_label_text_type_column]    Column labels as letters (true) or numbers (false).
- * @param {Real}   [_grid_colour]               Colour of the grid lines.
- * @param {Real}   [_text_colour]               Colour of label text.
- * @param {Real}   [_text_selection_colour]     Colour of label text for the row/column under the cursor.
- * @param {Real}   [_font]                      Set grid text font.
- * @param {Array}  [_tile_data]                 Array of arrays of structs, indexed [row][column]. Each struct: (sprite, index, angle, alpha).
- * @returns        {Struct.grid}
+- @function                                    grid
+- @description                                 Generates a 2D grid with row/column labels and optional tiles.
+- @param {Real}   [_x_offset]                  Draw position (horizontal).
+- @param {Real}   [_y_offset]                  Draw position (vertical).
+- @param {Real}   [_cell_width]                Width of a cell.
+- @param {Real}   [_cell_height]               Height of a cell.
+- @param {Real}   [_row_qty]                   Number of rows.
+- @param {Real}   [_column_qty]                Number of columns.
+- @param {Bool}   [_label_text_type_row]       Row labels as letters (true) or numbers (false).
+- @param {Bool}   [_label_text_type_column]    Column labels as letters (true) or numbers (false).
+- @param {Real}   [_grid_colour]               Colour of the grid lines.
+- @param {Real}   [_text_colour]               Colour of label text.
+- @param {Real}   [_text_selection_colour]     Colour of label text for the row/column under the cursor.
+- @param {Real}   [_font]                      Set grid text font.
+- @param {Array}  [_tile_data]                 Array of arrays of structs, indexed [row][column]. Each struct: (sprite, index, angle, alpha).
+- @returns        {Struct.grid}
  */
  
 function grid
@@ -175,7 +175,7 @@ constructor
     vbuff                        = -1;
     row_labels                   = [];
     column_labels                = [];
-    tile_positions               = [];    // Precomputed tile draw positions, indexed [row][column] relative to the visible window (populated by set_grid).
+    tile_positions               = [];    // Precomputed tile draw structs (x, y, sprite, index, angle, alpha) for visible cells (populated by set_grid).
     
     cache_cursor                 = window_get_cursor();
     
@@ -230,10 +230,10 @@ constructor
     // Guard alive (Instance destruction validation guard) [3.2b]
 
     /**
-     * @function guard_alive()
-     * @description Throws if this instance has already been destroyed. Single source of truth for the
-     * use-after-destroy check. Call at the top of any method that reads vbuff/labels or mutates grid state.
-     * @since v0.1.0.
+- @function guard_alive()
+- @description Throws if this instance has already been destroyed. Single source of truth for the
+- use-after-destroy check. Call at the top of any method that reads vbuff/labels or mutates grid state.
+- @since v0.1.0.
      */
 
     static guard_alive = function()
@@ -244,12 +244,13 @@ constructor
     // 3.1 Core Build & Generation Methods [3.1]
     
     /**
-     * @function    set_grid
-     * @description Builds the label positions, the grid line vertex buffer and the tile draw positions,
-     * applying x_scale/y_scale to every position. Safe to call again after changing any grid property.
+- @function set_grid
+- @description Builds the label positions, the grid line vertex buffer and the tile draw list,
+- applying x_scale/y_scale and shift bounds in advance so draw() performs zero calculations.
+- Safe to call again after changing any grid property.
      */
     
-    // set_grid (Vertex buffer & label layout generation) [3.1a]
+    // set_grid (Vertex buffer, label layout & tile draw list generation) [3.1a]
     
     static set_grid = function() 
     {
@@ -257,8 +258,9 @@ constructor
 
         // Reset previous build data [3.1a.1]
         
-        row_labels    = [];
-        column_labels = [];
+        row_labels     = [];
+        column_labels  = [];
+        tile_positions = [];
         
         if (vbuff != -1)
         {
@@ -345,9 +347,7 @@ constructor
         vertex_end(vbuff);
         vertex_freeze(vbuff); // Static until the next set_grid() call.
         
-        // Build tile draw positions (origin & rotation compensated) [3.1a.7]
-        
-        tile_positions = [];
+        // Build tile draw entries (origin & rotation compensated) [3.1a.7]
         
         if (!is_undefined(tile_data))
         {
@@ -364,7 +364,6 @@ constructor
                 // Column count is read per row, as rows are not guaranteed to be the same length.
                 
                 var _tile_data_column_qty = array_length(tile_data[_tile_row]);
-                var _row_positions        = [];
                 
                 // Column loop & out of bounds guard [3.1a.7b]
                 
@@ -405,16 +404,18 @@ constructor
                     var _min_x = min(_dx0 * _cos, _dx1 * _cos) + min(_dy0 * _sin, _dy1 * _sin);
                     var _min_y = min(-_dx0 * _sin, -_dx1 * _sin) + min(_dy0 * _cos, _dy1 * _cos);
                     
-                    // Store draw position aligned to cell top-left [3.1a.7f]
+                    // Store draw entry aligned to cell top-left [3.1a.7f]
                     
-                    array_push(_row_positions,
+                    array_push(tile_positions,
                     {
-                        x : (x_offset + (_column * _cell_w)) - _min_x,
-                        y : (y_offset + (_row    * _cell_h)) - _min_y,
+                        x      : (x_offset + (_column * _cell_w)) - _min_x,
+                        y      : (y_offset + (_row    * _cell_h)) - _min_y,
+                        sprite : _sprite,
+                        index  : _tile.index,
+                        angle  : _angle,
+                        alpha  : _tile.alpha,
                     });
                 }
-                
-                array_push(tile_positions, _row_positions);
             }
         }
     }
@@ -422,10 +423,10 @@ constructor
     // 3.2 Internal Helpers & Utilities [3.2]
     
     /**
-     * @function convert_letters
-     * @description Converts a number to a letter label, as on an atlas or spreadsheet (0 = A, 25 = Z, 26 = AA).
-     * @param {Real} _number The number to convert.
-     * @returns {String}
+- @function convert_letters
+- @description Converts a number to a letter label, as on an atlas or spreadsheet (0 = A, 25 = Z, 26 = AA).
+- @param {Real} _number The number to convert.
+- @returns {String}
      */
     
     // convert_letters (Atlas-style coordinate converter) [3.2a]
@@ -446,12 +447,12 @@ constructor
     }
     
     /**
-     * @function get_x()
-     * @description Gets the column index under the given X coordinate.
-     * @since v0.1.0.
-     * @param {Real} [_x] X coordinate to check (mouse pointer by default).
-     * @returns {Real} Column index, clamped to a valid range.
-     * @self {struct.grid}
+- @function get_x()
+- @description Gets the column index under the given X coordinate.
+- @since v0.1.0.
+- @param {Real} [_x] X coordinate to check (mouse pointer by default).
+- @returns {Real} Column index, clamped to a valid range.
+- @self {struct.grid}
      */
     
     // get_x (Get column index from X coordinate) [3.2c]
@@ -464,12 +465,12 @@ constructor
     }
     
     /**
-     * @function get_y()
-     * @description Gets the row index under the given Y coordinate.
-     * @since v0.1.0.
-     * @param {Real} [_y] Y coordinate to check (mouse pointer by default).
-     * @returns {Real} Row index, clamped to a valid range.
-     * @self {struct.grid}
+- @function get_y()
+- @description Gets the row index under the given Y coordinate.
+- @since v0.1.0.
+- @param {Real} [_y] Y coordinate to check (mouse pointer by default).
+- @returns {Real} Row index, clamped to a valid range.
+- @self {struct.grid}
      */
     
     // get_y (Get row index from Y coordinate) [3.2d]
@@ -482,11 +483,11 @@ constructor
     }
     
     /**
-     * @function shift_x()
-     * @description Shifts columns. (Negative values shift left.)
-     * @since v0.1.0.
-     * @param {Real} _value Amount to add to the current column shift.
-     * @self {struct.grid}
+- @function shift_x()
+- @description Shifts columns. (Negative values shift left.)
+- @since v0.1.0.
+- @param {Real} _value Amount to add to the current column shift.
+- @self {struct.grid}
      */
 
     // shift_x (Shift columns utility) [3.2e]
@@ -501,11 +502,11 @@ constructor
     }
     
     /**
-     * @function shift_y()
-     * @description Shifts rows. (Negative values shift up.)
-     * @since v0.1.0.
-     * @param {Real} _value Amount to add to the current row shift.
-     * @self {struct.grid}
+- @function shift_y()
+- @description Shifts rows. (Negative values shift up.)
+- @since v0.1.0.
+- @param {Real} _value Amount to add to the current row shift.
+- @self {struct.grid}
      */
     
     // shift_y (Shift rows utility) [3.2f]
@@ -520,12 +521,12 @@ constructor
     }
     
     /**
-     * @function clamp_shifts()
-     * @description Re-clamps both shifts against the current row/column quantities. The max() guards
-     * against a quantity exceeding (1 + SHIFT_MAX), which would otherwise invert clamp()'s bounds
-     * and let a shift go negative.
-     * @since v0.1.0.
-     * @self {struct.grid}
+- @function clamp_shifts()
+- @description Re-clamps both shifts against the current row/column quantities. The max() guards
+- against a quantity exceeding (1 + SHIFT_MAX), which would otherwise invert clamp()'s bounds
+- and let a shift go negative.
+- @since v0.1.0.
+- @self {struct.grid}
      */
     
     // clamp_shifts (Keep both shifts valid for current quantities) [3.2g]
@@ -537,11 +538,11 @@ constructor
     }
     
     /**
-     * @function update_row()
-     * @description Changes the number of rows.
-     * @since v0.1.0.
-     * @param {Real} _value Number of rows in the new grid.
-     * @self {struct.grid}
+- @function update_row()
+- @description Changes the number of rows.
+- @since v0.1.0.
+- @param {Real} _value Number of rows in the new grid.
+- @self {struct.grid}
      */
     
     // update_row (Change number of rows) [3.2h]
@@ -557,11 +558,11 @@ constructor
     }
     
     /**
-     * @function update_column()
-     * @description Changes the number of columns.
-     * @since v0.1.0.
-     * @param {Real} _value Number of columns in the new grid.
-     * @self {struct.grid}
+- @function update_column()
+- @description Changes the number of columns.
+- @since v0.1.0.
+- @param {Real} _value Number of columns in the new grid.
+- @self {struct.grid}
      */
     
     // update_column (Change number of columns) [3.2i]
@@ -577,13 +578,13 @@ constructor
     }
     
     /**
-     * @function zoom()
-     * @description Zooms in/out while preserving the grid's total on-screen size.
-     * Zooming out halves the scale and doubles the quantities; zooming in does the reverse.
-     * Does nothing if the result would break a scale or quantity limit.
-     * @since v0.1.0.
-     * @param {Bool} [_zoom_direction] True to zoom in, false to zoom out.
-     * @self {struct.grid}
+- @function zoom()
+- @description Zooms in/out while preserving the grid's total on-screen size.
+- Zooming out halves the scale and doubles the quantities; zooming in does the reverse.
+- Does nothing if the result would break a scale or quantity limit.
+- @since v0.1.0.
+- @param {Bool} [_zoom_direction] True to zoom in, false to zoom out.
+- @self {struct.grid}
      */
     
     // zoom (Zoom in/out preserving on-screen size) [3.2j]
@@ -636,10 +637,10 @@ constructor
     }
     
     /**
-     * @function set_coords()
-     * @description Highlights the row/column labels under the mouse. Clears the highlight when the mouse is off the grid.
-     * @since v0.1.0.
-     * @self {struct.grid}
+- @function set_coords()
+- @description Highlights the row/column labels under the mouse. Clears the highlight when the mouse is off the grid.
+- @since v0.1.0.
+- @self {struct.grid}
      */
     
     // set_coords (Highlight labels under the cursor) [3.2k]
@@ -669,12 +670,12 @@ constructor
     }
     
     /**
-     * @function set_cursor()
-     * @description Sets the mouse pointer graphic depending on whether the given point is over the grid.
-     * @since v0.1.0.
-     * @param {Real} [_x] X coordinate to check (mouse pointer by default).
-     * @param {Real} [_y] Y coordinate to check (mouse pointer by default).
-     * @self {struct.grid}
+- @function set_cursor()
+- @description Sets the mouse pointer graphic depending on whether the given point is over the grid.
+- @since v0.1.0.
+- @param {Real} [_x] X coordinate to check (mouse pointer by default).
+- @param {Real} [_y] Y coordinate to check (mouse pointer by default).
+- @self {struct.grid}
      */
     
     // set_cursor (Pointer graphic while over the grid) [3.2l]
@@ -698,8 +699,8 @@ constructor
     // 3.3 Lifecycle & Event Methods [3.3]
     
     /**
-     * @function step
-     * @description Executes example grid functionality: wheel zoom, arrow key shifting, label highlight and cursor.
+- @function step
+- @description Executes example grid functionality: wheel zoom, arrow key shifting, label highlight and cursor.
      */
     
     // step (Frame update logic) [3.3a]
@@ -731,8 +732,8 @@ constructor
     // draw (State preservation & rendering) [3.3b]
 
     /**
-     * @function draw
-     * @description Draws the tiles, the labels and the grid lines.
+- @function draw
+- @description Draws the precomputed tiles, the labels and the grid lines.
      */
     
     static draw = function()
@@ -743,37 +744,18 @@ constructor
         
         // Draw tiles [3.3b.2]
         
-        if (!is_undefined(tile_data))
+        var _tile_count = array_length(tile_positions);
+        
+        for (var _i = 0; _i < _tile_count; ++_i)
         {
-            var _tile_data_row_qty = array_length(tile_data);
+            var _tile = tile_positions[_i];
             
-            for (var _row = 0; _row < row_qty; ++_row)
-            {
-                var _tile_row = _row + y_shift;
-                
-                if (_tile_row >= _tile_data_row_qty) then break; // Out of bounds guard: no more tile rows.
-                
-                // Column count is read per row, as rows are not guaranteed to be the same length.
-                
-                var _tile_data_column_qty = array_length(tile_data[_tile_row]);
-                
-                for (var _column = 0; _column < column_qty; ++_column)
-                {
-                    var _tile_column = _column + x_shift;
-                    
-                    if (_tile_column >= _tile_data_column_qty) then break; // Out of bounds guard: row is shorter.
-                    
-                    var _tile          = tile_data[_tile_row][_tile_column];
-                    var _tile_position = tile_positions[_row][_column]; // Precomputed in set_grid().
-                    
-                    draw_sprite_ext
-                    (
-                        _tile.sprite, _tile.index,
-                        _tile_position.x, _tile_position.y,
-                        x_scale, y_scale, _tile.angle, c_white, _tile.alpha
-                    );
-                }
-            }
+            draw_sprite_ext
+            (
+                _tile.sprite, _tile.index,
+                _tile.x, _tile.y,
+                x_scale, y_scale, _tile.angle, c_white, _tile.alpha
+            );
         }
         
         // Store current draw values [3.3b.3]
@@ -822,8 +804,8 @@ constructor
     // destroy (Resource cleanup & self-unlinking) [3.3c]
     
     /**
-     * @function destroy
-     * @description Removes this grid from the global list, frees GPU resources, restores the cursor, and wipes all instance data.
+- @function destroy
+- @description Removes this grid from the global list, frees GPU resources, restores the cursor, and wipes all instance data.
      */
     
     static destroy = function() 
